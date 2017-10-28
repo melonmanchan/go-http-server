@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,6 +8,20 @@ import (
 	"path"
 	"strings"
 )
+
+type HTTPStatus struct {
+	status int
+	msg    string
+}
+
+func (h HTTPStatus) ToHeader() string {
+	return fmt.Sprintf("HTTP/1.1 %d %s\r\n", h.status, h.msg)
+}
+
+var notFound = HTTPStatus{404, "not found"}
+var ok = HTTPStatus{200, "OK"}
+var methodNotAllowed = HTTPStatus{405, "method not allowed"}
+var serverError = HTTPStatus{500, "internal server error"}
 
 func main() {
 	ln, err := net.Listen("tcp", ":8081")
@@ -41,13 +54,13 @@ var filetypes = map[string]string{
 	"":      "text/plain",
 }
 
-func getPathFromBytes(bytes []byte) (string, error) {
+func getPathFromBytes(bytes []byte) (string, *HTTPStatus) {
 	s := string(bytes[:])
 	splat := strings.Split(s, "\r\n")
 	paths := strings.Split(splat[0], " ")
 
 	if paths[0] != "GET" {
-		return "", errors.New("only GET is supported")
+		return "", &methodNotAllowed
 	}
 
 	return paths[1], nil
@@ -75,26 +88,28 @@ func handleConnection(conn net.Conn) {
 	_, err := conn.Read(buf)
 
 	if err != nil {
-		log.Print(err)
+		fmt.Fprint(conn, serverError.ToHeader())
 		return
 	}
 
-	path, _ := getPathFromBytes(buf)
+	path, possibleError := getPathFromBytes(buf)
+
+	if possibleError != nil {
+		fmt.Fprint(conn, possibleError.ToHeader())
+	}
 
 	sanitizedPath := safePath(path)
-
-	log.Println(sanitizedPath)
 
 	dat, err := readFile("." + sanitizedPath)
 
 	if err != nil {
-		fmt.Fprint(conn, "HTTP/1.1 404 NOT FOUND\r\n")
+		fmt.Fprint(conn, notFound.ToHeader())
 		return
 	}
 
 	fileType := getContentType(sanitizedPath)
 
-	fmt.Fprint(conn, "HTTP/1.1 200 OK\r\n")
+	fmt.Fprint(conn, ok.ToHeader())
 	fmt.Fprintf(conn, "Content-Type: %s\r\n", fileType)
 	fmt.Fprintf(conn, "Content-Length: %d\r\n", len(dat))
 	fmt.Fprint(conn, "\r\n")
