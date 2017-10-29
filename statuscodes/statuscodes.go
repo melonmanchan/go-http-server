@@ -15,3 +15,4 @@ var NotFound = HTTPStatus{404, "not found"}
 var Ok = HTTPStatus{200, "OK"}
 var MethodNotAllowed = HTTPStatus{405, "method not allowed"}
 var ServerError = HTTPStatus{500, "internal server error"}
+var Teapot = HTTPStatus{418, "I'm a teapot"}
