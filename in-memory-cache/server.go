@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"compress/gzip"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -44,6 +46,25 @@ func main() {
 
 		go handleConnection(conn)
 	}
+}
+
+func gzipBytes(inputBytes []byte) ([]byte, error) {
+	var b bytes.Buffer
+	gz := gzip.NewWriter(&b)
+
+	if _, err := gz.Write(inputBytes); err != nil {
+		return nil, err
+	}
+
+	if err := gz.Flush(); err != nil {
+		return nil, err
+	}
+
+	if err := gz.Close(); err != nil {
+		return nil, err
+	}
+
+	return b.Bytes(), nil
 }
 
 func getPathFromHeader(header string) (string, *statuscodes.HTTPStatus) {
@@ -93,7 +114,8 @@ func handleConnection(conn net.Conn) {
 
 	if !ok {
 		log.Printf("Cache empty! key %s", fileKey)
-		dat, err = ioutil.ReadFile(sanitizedPath)
+		contents, _ := ioutil.ReadFile(sanitizedPath)
+		dat, _ = gzipBytes(contents)
 		fileMap.Store(fileKey, dat)
 	}
 
@@ -102,6 +124,8 @@ func handleConnection(conn net.Conn) {
 	fmt.Fprint(conn, statuscodes.Ok.ToHeader())
 	fmt.Fprintf(conn, "Content-Type: %s\r\n", fileType)
 	fmt.Fprintf(conn, "Content-Length: %d\r\n", len(dat))
+	fmt.Fprint(conn, "Content-Encoding: gzip\r\n")
+
 	fmt.Fprint(conn, "\r\n")
 	conn.Write(dat)
 }
