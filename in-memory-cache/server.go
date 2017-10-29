@@ -85,7 +85,7 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
-	fileKey := sanitizedPath + string(info.ModTime().Unix())
+	fileKey := sanitizedPath + info.ModTime().String()
 
 	dat := []byte{}
 
