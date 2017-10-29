@@ -50,7 +50,7 @@ func main() {
 
 func gzipBytes(inputBytes []byte) ([]byte, error) {
 	var b bytes.Buffer
-	gz := gzip.NewWriter(&b)
+	gz, _ := gzip.NewWriterLevel(&b, gzip.BestCompression)
 
 	if _, err := gz.Write(inputBytes); err != nil {
 		return nil, err
