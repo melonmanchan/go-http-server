@@ -56,11 +56,6 @@ func safePath(reqPath string) string {
 	return "./" + path.Join(*basePath, strings.Replace(reqPath, "..", "", -1))
 }
 
-func readFile(reqPath string) ([]byte, error) {
-	dat, err := ioutil.ReadFile(reqPath)
-	return dat, err
-}
-
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
@@ -79,7 +74,7 @@ func handleConnection(conn net.Conn) {
 
 	sanitizedPath := safePath(path)
 
-	dat, err := readFile(sanitizedPath)
+	dat, err := ioutil.ReadFile(sanitizedPath)
 
 	if err != nil {
 		fmt.Fprint(conn, statuscodes.NotFound.ToHeader())
