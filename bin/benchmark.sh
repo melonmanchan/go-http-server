@@ -3,7 +3,7 @@ set -e
 rm -f BENCHMARK.md
 touch BENCHMARK.md
 
-server_types=(simple-server)
+server_types=(simple-server in-memory-cache)
 
 for i in ${server_types[@]}; do
   go run "$i/server.go" &
