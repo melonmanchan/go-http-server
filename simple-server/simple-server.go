@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -15,6 +16,7 @@ import (
 
 var port = flag.Int("port", 8081, "port to run under")
 var basePath = flag.String("path", ".", "base path")
+var CR = byte('\r')
 
 func main() {
 	flag.Parse()
@@ -40,9 +42,8 @@ func main() {
 	}
 }
 
-func getPathFromBytes(bytes []byte) (string, *statuscodes.HTTPStatus) {
-	s := string(bytes[:])
-	splat := strings.Split(s, "\r\n")
+func getPathFromHeader(header string) (string, *statuscodes.HTTPStatus) {
+	splat := strings.Split(header, "\r\n")
 	paths := strings.Split(splat[0], " ")
 
 	if paths[0] != "GET" {
@@ -63,17 +64,15 @@ func readFile(reqPath string) ([]byte, error) {
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
-
-	buf := make([]byte, 1024)
-
-	_, err := conn.Read(buf)
+	reader := bufio.NewReader(conn)
+	firstHeader, err := reader.ReadString(CR)
 
 	if err != nil {
 		fmt.Fprint(conn, statuscodes.ServerError.ToHeader())
 		return
 	}
 
-	path, possibleError := getPathFromBytes(buf)
+	path, possibleError := getPathFromHeader(firstHeader)
 
 	if possibleError != nil {
 		fmt.Fprint(conn, possibleError.ToHeader())
