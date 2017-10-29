@@ -43,8 +43,7 @@ func main() {
 }
 
 func getPathFromHeader(header string) (string, *statuscodes.HTTPStatus) {
-	splat := strings.Split(header, "\r\n")
-	paths := strings.Split(splat[0], " ")
+	paths := strings.Split(header, " ")
 
 	if paths[0] != "GET" {
 		return "", &statuscodes.MethodNotAllowed
