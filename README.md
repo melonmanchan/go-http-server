@@ -9,5 +9,4 @@ Super-simple static file servin' HTTP 1.1 server built on top of raw TCP sockets
 
 ## TODO
 - TLS support (?)
-- Benchmarks
 - Different versions utilizing thread pools, async/event-driven patterns, caching...
