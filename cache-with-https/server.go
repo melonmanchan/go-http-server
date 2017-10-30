@@ -23,12 +23,15 @@ var port = flag.Int("port", 8081, "port to run under")
 var basePath = flag.String("path", ".", "base path")
 var CR = byte('\r')
 
+var keyPath = flag.String("key", "./cache-with-https/server.key", "private key path")
+var crtPath = flag.String("crt", "./cache-with-https/server.crt", "certificate key path")
+
 var fileMap = syncmap.NewSyncByteMap()
 
 func main() {
 	flag.Parse()
 
-	cer, err := tls.LoadX509KeyPair("./cache-with-https/server.crt", "./cache-with-https/server.key")
+	cer, err := tls.LoadX509KeyPair(*crtPath, *keyPath)
 
 	if err != nil {
 		log.Fatal(err)
