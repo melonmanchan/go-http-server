@@ -7,9 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"path"
-	"strings"
 
+	"github.com/melonmanchan/go-http-server/common"
 	"github.com/melonmanchan/go-http-server/mimetypes"
 	"github.com/melonmanchan/go-http-server/statuscodes"
 )
@@ -42,20 +41,6 @@ func main() {
 	}
 }
 
-func getPathFromHeader(header string) (string, *statuscodes.HTTPStatus) {
-	paths := strings.Split(header, " ")
-
-	if paths[0] != "GET" {
-		return "", &statuscodes.MethodNotAllowed
-	}
-
-	return paths[1], nil
-}
-
-func safePath(reqPath string) string {
-	return "./" + path.Join(*basePath, strings.Replace(reqPath, "..", "", -1))
-}
-
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
@@ -66,13 +51,13 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
-	path, possibleError := getPathFromHeader(firstHeader)
+	path, possibleError := common.GetPathFromHeader(firstHeader)
 
 	if possibleError != nil {
 		fmt.Fprint(conn, possibleError.ToHeader())
 	}
 
-	sanitizedPath := safePath(path)
+	sanitizedPath := common.SafePath(path, *basePath)
 
 	dat, err := ioutil.ReadFile(sanitizedPath)
 
