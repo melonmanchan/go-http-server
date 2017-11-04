@@ -37,7 +37,13 @@ func GetPathFromHeader(header string) (string, *statuscodes.HTTPStatus) {
 		return "", &statuscodes.MethodNotAllowed
 	}
 
-	return sanitizeQueryParameter(paths[1]), nil
+	sanitized := sanitizeQueryParameter(paths[1])
+
+	if sanitized == "/" {
+		return "index.html", nil
+	}
+
+	return sanitized, nil
 }
 
 func SafePath(reqPath string, basePath string) string {
