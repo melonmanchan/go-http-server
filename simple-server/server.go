@@ -44,14 +44,9 @@ func main() {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
-	firstHeader, err := reader.ReadString(CR)
+	headers := common.ReadAllHeaders(*reader)
 
-	if err != nil {
-		fmt.Fprint(conn, statuscodes.ServerError.ToHeader())
-		return
-	}
-
-	path, possibleError := common.GetPathFromHeader(firstHeader)
+	path, possibleError := common.GetPathFromHeader(headers[0])
 
 	if possibleError != nil {
 		fmt.Fprint(conn, possibleError.ToHeader())

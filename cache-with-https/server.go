@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"os"
 
 	"github.com/melonmanchan/go-http-server/common"
@@ -92,14 +93,8 @@ func gzipBytes(inputBytes []byte) ([]byte, error) {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
-	firstHeader, err := reader.ReadString(CR)
-
-	if err != nil {
-		fmt.Fprint(conn, statuscodes.ServerError.ToHeader())
-		return
-	}
-
-	path, possibleError := common.GetPathFromHeader(firstHeader)
+	headers := common.ReadAllHeaders(*reader)
+	path, possibleError := common.GetPathFromHeader(headers[0])
 
 	if possibleError != nil {
 		fmt.Fprint(conn, possibleError.ToHeader())
@@ -133,6 +128,7 @@ func handleConnection(conn net.Conn) {
 	fmt.Fprintf(conn, "Content-Type: %s\r\n", fileType)
 	fmt.Fprintf(conn, "Content-Length: %d\r\n", len(dat))
 	fmt.Fprint(conn, "Content-Encoding: gzip\r\n")
+	fmt.Fprintf(conn, "Last-Modified: %s\r\n", info.ModTime().Format(http.TimeFormat))
 
 	fmt.Fprint(conn, "\r\n")
 	conn.Write(dat)
