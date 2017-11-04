@@ -128,8 +128,8 @@ func handleConnection(conn net.Conn) {
 	fmt.Fprintf(conn, "Content-Type: %s\r\n", fileType)
 	fmt.Fprintf(conn, "Content-Length: %d\r\n", len(dat))
 	fmt.Fprint(conn, "Content-Encoding: gzip\r\n")
+	fmt.Fprint(conn, "Strict-Transport-Security: max-age=31536000")
 	fmt.Fprintf(conn, "Last-Modified: %s\r\n", info.ModTime().Format(http.TimeFormat))
-
 	fmt.Fprint(conn, "\r\n")
 	conn.Write(dat)
 }
