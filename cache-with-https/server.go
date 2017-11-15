@@ -52,13 +52,13 @@ func main() {
 
 	ln, err := tls.Listen("tcp", fmt.Sprintf(":%d", *port), cfg)
 
+	defer ln.Close()
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.Printf("Listening at port :%d", *port)
-
-	defer ln.Close()
 
 	for {
 		conn, err := ln.Accept()

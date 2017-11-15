@@ -14,11 +14,11 @@ import (
 func main() {
 	ln, err := net.Listen("tcp", ":80")
 
+	defer ln.Close()
+
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	defer ln.Close()
 
 	for {
 		conn, err := ln.Accept()

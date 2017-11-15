@@ -29,13 +29,13 @@ func main() {
 
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 
+	defer ln.Close()
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.Printf("Listening at port :%d", *port)
-
-	defer ln.Close()
 
 	for {
 		conn, err := ln.Accept()
