@@ -25,6 +25,7 @@ var CR = byte('\r')
 
 var keyPath = flag.String("key", "./cache-with-https/server.key", "private key path")
 var crtPath = flag.String("crt", "./cache-with-https/server.crt", "certificate key path")
+var serverName = flag.String("name", "mattij.com", "server name for TLS")
 
 var fileMap = syncmap.NewSyncByteMap()
 
@@ -42,6 +43,7 @@ func main() {
 		MinVersion:               tls.VersionTLS12,
 		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
 		PreferServerCipherSuites: true,
+		ServerName:               *serverName,
 		CipherSuites: []uint16{
 			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
 			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
