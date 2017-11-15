@@ -94,6 +94,11 @@ func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 	headers := common.ReadAllHeaders(*reader)
+
+	if len(headers) == 0 {
+		return
+	}
+
 	path, possibleError := common.GetPathFromHeader(headers[0])
 
 	if possibleError != nil {
@@ -109,7 +114,20 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
+	modifiedSince := common.FindValueFromHeaders(headers, "If-Modified-Since")
+	noneMatch := common.FindValueFromHeaders(headers, "If-None-Match")
+
 	fileKey := sanitizedPath + info.ModTime().String()
+
+	if noneMatch == fileKey {
+		fmt.Fprint(conn, statuscodes.NotModified.ToHeader())
+		return
+	}
+
+	if modifiedSince == info.ModTime().Format(http.TimeFormat) {
+		fmt.Fprint(conn, statuscodes.NotModified.ToHeader())
+		return
+	}
 
 	dat := []byte{}
 
@@ -128,7 +146,8 @@ func handleConnection(conn net.Conn) {
 	fmt.Fprintf(conn, "Content-Type: %s\r\n", fileType)
 	fmt.Fprintf(conn, "Content-Length: %d\r\n", len(dat))
 	fmt.Fprint(conn, "Content-Encoding: gzip\r\n")
-	fmt.Fprint(conn, "Strict-Transport-Security: max-age=31536000")
+	fmt.Fprint(conn, "Strict-Transport-Security: max-age=31536000\r\n")
+	fmt.Fprintf(conn, "ETag: %s\r\n", fileKey)
 	fmt.Fprintf(conn, "Last-Modified: %s\r\n", info.ModTime().Format(http.TimeFormat))
 	fmt.Fprint(conn, "\r\n")
 	conn.Write(dat)

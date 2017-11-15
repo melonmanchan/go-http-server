@@ -17,3 +17,4 @@ var MethodNotAllowed = HTTPStatus{405, "method not allowed"}
 var ServerError = HTTPStatus{500, "internal server error"}
 var Teapot = HTTPStatus{418, "I'm a teapot"}
 var Redirect = HTTPStatus{301, "moved permanently"}
+var NotModified = HTTPStatus{304, "not modified"}

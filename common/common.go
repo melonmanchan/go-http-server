@@ -9,6 +9,14 @@ import (
 	"github.com/melonmanchan/go-http-server/statuscodes"
 )
 
+func FindValueFromHeaders(headers []string, key string) string {
+	for _, v := range headers {
+		if strings.HasPrefix(v, key) {
+			return strings.SplitN(v, " ", 2)[1]
+		}
+	}
+	return ""
+}
 func ReadAllHeaders(reader bufio.Reader) []string {
 	rdr := textproto.NewReader(&reader)
 	output := []string{}
